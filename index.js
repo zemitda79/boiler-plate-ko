@@ -3,7 +3,7 @@ const app = express()
 const port = 3000
 const bodyParser = require('body-parser');
 const { auth } = require('./middleware/auth');
-const { User } = require('./models/User');
+const { user } = require('./models/user');
 
 const cookieParser = require('cookie-parser');
 const config = require('./config/key');
@@ -32,7 +32,7 @@ app.post('/api/users/register', (req,res) => {
     // 회원가입 할때 필요한 정보들을 Client 에서 가져오면
     // 그것들을 데이터베이스에 넣어준다.
 
-    const user = new User(req.body)
+    const user = new user(req.body)
 
     user.save((err, userInfo) => { 
         if(err) return res.json({success:false, err})
@@ -48,7 +48,7 @@ app.post('/api/users/register', (req,res) => {
 
 app.post('/api/users/login', (req,res) => {
     // 요청된 이메일을 데이터베이스에 있는지 찾는다.
-    User.findOne({ email:req.body.email}, (err, user) => {
+    user.findOne({ email:req.body.email}, (err, user) => {
         if(!user) {
             return res.json({
                 loginSuccess:false,
@@ -69,7 +69,7 @@ app.post('/api/users/login', (req,res) => {
             user.generateToken((err, user) => { 
                 if(err) return res.status(400).send(err);
 
-                console.log(user.token);
+                //console.log(user.token);
                 // 토큰을 저장한다. 
                 res.cookie("x_auth", user.token)
                 .status(200)
@@ -102,5 +102,17 @@ app.get('/api/users/auth', auth, (req,res) => {
 
 });
 
+
+app.get('/api/users/logout', auth, (req,res) => {
+    user.findOneAndUpdate({ _id:req.user._id},
+        {token : ""}
+        ,(err, user) => {
+            if(err) return res.json({ success:false, err});
+            return res.status(200).send({
+                success : true
+            });
+        }); 
+
+});
 
 app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))

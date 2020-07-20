@@ -5,7 +5,6 @@ const saltRounds = 10;
 
 const jwt = require('jsonwebtoken');
 
-
 const userSchema = mongoose.Schema({
     name: {
         type:String,
@@ -37,6 +36,8 @@ const userSchema = mongoose.Schema({
     }
 
 })
+
+
 
 userSchema.pre('save', function(next) {
 
@@ -93,25 +94,26 @@ userSchema.methods.generateToken = function(cb) {
 
 }
 
+
 userSchema.statics.findByToken = function(token, cb) {
     var user = this;
 
-    user._id = token;
+    //user._id = token;
     // 토큰을 decode 한다.
-    jwt.verify(token, 'secretToken', function(err, decooed) {
+    jwt.verify(token, 'secretToken', function(err, decoded) {
         // 유져 아이디를 이용해서 유저를 찾은 다음에
         // 클라이언트에서 가져온 token과 db에 보관된 토큰이 일치하는지 확인
 
-        user.findOne({  "_id":decooed,
+        user.findOne({  "_id":decoded,
                         "token":token}, function (err, user){
                             if(err) return cb(err);
 
                             cb(null,user); 
-                        }) 
+                        }) ;
 
-    })
+    });
 }
 
-const User = mongoose.model('User', userSchema);
+const user = mongoose.model('user', userSchema);
 
-module.exports = { User }
+module.exports = { user }
